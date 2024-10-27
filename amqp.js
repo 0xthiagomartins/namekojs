@@ -1,5 +1,6 @@
 import amqp from 'amqplib';
 import dotenv from 'dotenv';
+import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
 
@@ -28,7 +29,7 @@ export async function rpc(serviceName, methodName, params) {
 
     await channel.bindQueue(replyQueue, exchange, replyQueue);
 
-    const correlationId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const correlationId = uuidv4();
 
     const payload = {
         args: params,
@@ -61,3 +62,15 @@ export async function rpc(serviceName, methodName, params) {
         });
     });
 }
+
+process.on('SIGINT', async () => {
+    console.log('Closing connection with AMQP Broker...');
+    if (connection) await connection.close();
+    process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+    console.log('Closing connection with AMQP Broker...');
+    if (connection) await connection.close();
+    process.exit(0);
+});
